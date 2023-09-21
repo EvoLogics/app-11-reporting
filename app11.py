@@ -1,90 +1,107 @@
-# Functions to generate APP-11 lines used in REPMUS 2023 APP-11 report generation.
+# Functions to generate APP-11 lines used in REPMUS 2023 APP-11 reports.
 
 # Library imports
 import math
+import textwrap
 
 # Local imports
-import constants
-import utils
+from constants import CTU_ORIGINATOR, \
+                      NMW_TQ_MAP, \
+                      NMW_TQ_SECOND_MAP
+from datatypes import ReportType
+from utils import currentDatetime
 
 
-def filename(report_type : str,
+def filename(report_type : ReportType,
              originator : str,
              area : str,
              task : str,
-             msg_serial : int) -> str:
+             msg_serial : str) -> str:
 
-    nmw_tq = ""
-
-    if (report_type == "start"):
-        nmw_tq = constants.NMW_TQ_START
-    if (report_type == "stop"):
-        nmw_tq = constants.NMW_TQ_STOP
-    if (report_type == "complete"):
-        nmw_tq = constants.NMW_TQ_COMPLETE
-
-    return "TE X446.02.02.{}_{}-{}_{}_{}.txt" \
-            .format(originator, area, task, nmw_tq, utils.formatMsgSerialNumber(msg_serial))
+    return "TE X{}.{}_{}-{}_{}_{}" \
+            .format(CTU_ORIGINATOR,
+                    originator,
+                    area,
+                    task,
+                    NMW_TQ_MAP[report_type],
+                    msg_serial)
 
 
 def header(originator : str) -> str:
-    time = utils.currentDatetime()
-    return ("R {}\n"
-            "FM TE X446.02.02.{}\n"
-            "TO CTU X446.02.02\n"
-            "INFO EXCON\n"
-            "\n"
-            ).format(time, originator)
+
+    return textwrap.dedent(
+           """\
+           R {}
+           FM TE X{}.{}
+           TO CTU X{}
+           INFO EXCON
+
+           """\
+            .format(currentDatetime(),
+                     CTU_ORIGINATOR,
+                     originator,
+                     CTU_ORIGINATOR))
 
 
-def begin():
-    return ("BT\n"
-            "\n"
-            "NATO UNCLASSIFIED\n"
-            "\n")
+def begin() -> str:
+
+    return textwrap.dedent(
+            """\
+            BT
+
+            NATO UNCLASSIFIED
+
+            """
+            )
 
 
-def end():
+def end() -> str:
+
     return "BT\n"
 
 
-def shared(report_type : str,
-           originator : str,
-           msg_serial : int,
-           area : str,
-           task : str,
-           ref : str,
-           start : str,
-           stop : str) -> str:
+def msgid(originator : str,
+          msg_serial_number : str) -> str:
 
-    nmw_tq = ""
-    nmw_tq_first = ""
-    nmw_tq_second = ""
-    if (report_type == "start"):
-        nmw_tq = constants.NMW_TQ_START
-        nmw_tq_first = constants.NMW_TQ_START
-        nmw_tq_second = constants.NMW_TQ_ETC
-    elif (report_type == "stop"):
-        nmw_tq = constants.NMW_TQ_STOP
-        nmw_tq_first = constants.NMW_TQ_START
-        nmw_tq_second = constants.NMW_TQ_STOP
-    else:
-        nmw_tq = constants.NMW_TQ_COMPLETE
-        nmw_tq_first = constants.NMW_TQ_START
-        nmw_tq_second = constants.NMW_TQ_COMPLETE
+    return "MSGID/OPREP NWM/APP-11(E)/1/{}.{}/{}/SEP/-/-/NATO/UNCLASSIFIED//\n" \
+            .format(CTU_ORIGINATOR,
+                    originator,
+                    msg_serial_number)
 
-    body = ""
-    body += "EXER/REPMUS 2023//\n"
-    body += "MSGID/OPREP NWM/APP-11(E)/1/446.02.02.{}/{}/SEP/-/-/NATO/UNCLASSIFIED//\n".format(originator, utils.formatMsgSerialNumber(msg_serial))
-    body += "REF/A/TYPE:MSG/OPDIR/CTU446.02.02/SEP2023//\n"
-    body += "REF/B/TYPE:MSG/OPTASK NWM/CTU446.02.02/{}//\n".format(ref)
-    body += "GEODATUM/WGE//\n"
-    body += "NMWREPQ/TASKREP/{}//\n".format(nmw_tq)
-    body += "HEADING/MCM//\n"
-    body += "MTASKREP/{}-{}/446.02.02.{}/AREA:{}/{}/{}/{}/{}//\n".format(area, task, originator, area, nmw_tq_first, start, nmw_tq_second, stop)
-    body += "\n"
 
-    return body
+def ref(serial_letter: str,
+        information_product: str,
+        datetime: str) -> str:
+
+    return "REF/{}/TYPE:MSG/{}/CTU{}/{}//\n" \
+            .format(serial_letter,
+                    information_product,
+                    CTU_ORIGINATOR,
+                    datetime)
+
+
+def nmwrepq(nmw_time_qualifier: str) -> str:
+    return "NMWREPQ/TASKREP/{}//\n" \
+            .format(nmw_time_qualifier)
+
+
+def mtaskrep(area : str,
+             task : str,
+             originator : str,
+             report_type : str,
+             start_utc : str,
+             second_utc : str) -> str:
+
+    return "MTASKREP/{}-{}/{}.{}/AREA:{}/{}/{}/{}/{}//\n" \
+            .format(area,
+                    task,
+                    CTU_ORIGINATOR,
+                    originator,
+                    area,
+                    NMW_TQ_MAP[ReportType.Start],
+                    start_utc,
+                    NMW_TQ_SECOND_MAP[report_type],
+                    second_utc)
 
 
 def mcmpedat(area : str,
@@ -101,6 +118,9 @@ def mcmpedat(area : str,
     #  - only 1 run per track
     #  - completion is always 100%
     # obviously this is not correct all the time, but for us it is and this simplifies things
+
+    if (number_of_tracks == 0):
+        return ""
 
     track_info = ""
     for i in range(0, number_of_tracks):
@@ -121,72 +141,90 @@ def mcmpedat(area : str,
                    track_info)
 
 
-def trckhist(file : str,
-             delta_t : float,
-             equipment : str) -> str:
+def trckhist(equipment: str,
+             utc: str,
+             fix: str,
+             sensor_altitude: str,
+             speed: str,
+             heading: str) -> str:
 
-    body = ""
-    data = utils.parseCsv(file)
-    data = utils.throttle_data(data, delta_t)
-    for line in data:
-        body += ("TRCKHIST/{}/{}/{}/{}/{}/{}//\n" \
-                .format(equipment,
-                        utils.extractAndFormatDTG(line),
-                        utils.extractAndFormatFix(line),
-                        utils.extractAndFormatSensorAltitude(line),
-                        utils.extractAndFormatSpeed(line),
-                        utils.extractAndFormatHeading(line)))
-
-    return body + "\n"
+    return "TRCKHIST/{}/{}/{}/{}/{}/{}//\n" \
+            .format(equipment,
+                    utc,
+                    fix,
+                    sensor_altitude,
+                    speed,
+                    heading)
 
 
-def mines(file : str,
-          sonar_type : str) -> str:
+def milecrep(utc: str,
+             fix: str,
+             circular_error_probability: str,
+             sonar_type: str,
+             comment: str,
+             image_name: str) -> str:
 
-    body = ""
-    data = utils.parseCsv(file)
-
-    for line in data:
-        detection_type = line[5].lower()
-        if detection_type == constants.MILEC:
-            body += milecrep(line, sonar_type)
-        if detection_type == constants.MILCO:
-            body += milcorep(line, sonar_type)
-        if detection_type == constants.MDET:
-            body += mdetrep(line, sonar_type)
-
-    return body + "\n"
-
-
-def milecrep(line, sonar_type) -> str:
     return "MILECREP/{}/WGE/{}/{}/{}/{}/{}//\n" \
-           .format(utils.getMineDTG(line),
-                   utils.getMineFix(line),
-                   utils.getMineCircularErrorProbability(line),
-                   sonar_type.upper(),
-                   "UNCERTAIN",
-                   utils.getMineImageName(line))
+           .format(utc,
+                   fix,
+                   circular_error_probability,
+                   sonar_type,
+                   comment,
+                   image_name)
 
 
-def milcorep(line, sonar_type) -> str:
-    return "MILCOREP/{}/{}/WGE/{}/{}/{}/{}/-/{}/{}//\n"     \
-           .format(utils.getMineContactReferenceNumber(line),
-                   utils.getMineDTG(line),
-                   utils.getMineFix(line),
-                   utils.getMineCircularErrorProbability(line),
-                   sonar_type.upper(),
-                   utils.getMineSonarConfidenceLevel(line),
-                   "LOOKS LIKE A MINE",
-                   utils.getMineImageName(line))
+def milcorep(contact_reference_number: str,
+             utc: str,
+             fix: str,
+             circular_error_probability: str,
+             sonar_type: str,
+             sonar_confidence_level: str,
+             comment: str,
+             image_name: str) -> str:
+
+    return "MILCOREP/{}/{}/WGE/{}/{}/{}/{}/-/{}/{}//\n" \
+           .format(contact_reference_number,
+                   utc,
+                   fix,
+                   circular_error_probability,
+                   sonar_type,
+                   sonar_confidence_level,
+                   comment,
+                   image_name)
 
 
-def mdetrep(line, sonar_type) -> str:
-    return "MDETREP/SIGHTED/VISUAL/{}/-/DIVER/WGE/{}/{}/-/SEE IMAGE {}/{}//\n" \
-           .format(utils.getMineDTG(line),
-                   utils.getMineFix(line),
-                   utils.getMineCircularErrorProbability(line),
-                   utils.getMineImageName(line),
-                   utils.getMineReferenceNumber(line))
+def nonmilcorep(contact_reference_number: str,
+                utc: str,
+                fix: str,
+                circular_error_probability: str,
+                sonar_type: str,
+                sonar_confidence_level) -> str:
+
+    return "NONMILCOREP/{}/{}/WGE/{}/{}/{}/{}//\n" \
+           .format(contact_reference_number,
+                   utc,
+                   fix,
+                   circular_error_probability,
+                   sonar_type,
+                   sonar_confidence_level)
+
+
+def mdetrep(detection_means: str,
+            utc: str,
+            unit_name: str,
+            fix: str,
+            circular_error_probability: str,
+            image_name: str,
+            mine_reference_number: str) -> str:
+
+    return "MDETREP/SIGHTED/{}/{}/-/{}/WGE/{}/{}/-/SEE IMAGE {}/{}//\n" \
+           .format(detection_means,
+                   utc,
+                   unit_name,
+                   fix,
+                   circular_error_probability,
+                   image_name,
+                   mine_reference_number)
 
 
 def narr(time_in_water: float,
@@ -194,7 +232,7 @@ def narr(time_in_water: float,
          pma_classification_and_processing_time: float,
          pma_recovery_and_processing_time: float) -> str:
 
-    return "NARR/{}H/{}H/{}H/{}H//\n\n" \
+    return "NARR/{}H/{}H/{}H/{}H//\n" \
            .format(time_in_water,
                    pma_detection_and_processing_time,
                    pma_classification_and_processing_time,

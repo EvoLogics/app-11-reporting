@@ -1,7 +1,6 @@
 # Utils used in REPMUS 2023 APP-11 report generation.
 
 # Library imports
-import csv
 import datetime
 import math
 
@@ -25,10 +24,6 @@ def currentDatetime():
     return "{}".format(time.strftime('%d%H%MZ%b%Y')).upper()
 
 
-def formatMsgSerialNumber(num):
-    return "{}".format(num).zfill(3)
-
-
 def formatFix(lat, lon):
     round(lat, 4)
     round(lon, 4)
@@ -41,17 +36,7 @@ def formatFix(lat, lon):
     return "{}{}-{}{}".format(lat_val, lat_sep, lon_val, lon_sep)
 
 
-def parseCsv(filename):
-    data = []
-    with open(filename, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        for row in reader:
-            data.append(row)
-    data.pop(0)
-    return data
-
-
-def throttle_data(data, delta_t):
+def throttleData(data, delta_t):
     throttled_data = []
 
     start_t = float(data[0][0])
@@ -110,8 +95,6 @@ def getMineContactReferenceNumber(line):
 
 
 def getMineDTG(line):
-    # NOTE:  It is unclear if the supplied date is UTC - for now we assume it is
-
     time = datetime.datetime.strptime(line[2], '%Y%m%d%H%M')
     return time.strftime('%d%H%MZ%b%Y').upper()
 
@@ -126,7 +109,7 @@ def getMineCircularErrorProbability(line):
 
 
 def getMineSonarConfidenceLevel(line):
-    return "{}".format(int(math.floor((float(line[6]) * 100) / 25.0)))
+    return "{}".format(int(math.floor((float(line[6]) * 100) / 25.0)) + 1)
 
 
 def getMineImageName(line):
