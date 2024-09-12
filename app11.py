@@ -5,9 +5,9 @@ import math
 import textwrap
 
 # Local imports
-from constants import CTU_ORIGINATOR, \
-                      NMW_TQ_MAP, \
-                      NMW_TQ_SECOND_MAP
+from constants import NMW_TQ_MAP, \
+                      NMW_TQ_SECOND_MAP, \
+                      MSG_ID_MAP
 from datatypes import ReportType
 from utils import currentDatetime
 
@@ -18,29 +18,28 @@ def filename(report_type : ReportType,
              task : str,
              msg_serial : str) -> str:
 
-    return "TE X{}.{}_{}-{}_{}_{}" \
-            .format(CTU_ORIGINATOR,
-                    originator,
+    return "{}_{}-{}_{}_{}" \
+            .format(originator,
                     area,
                     task,
                     NMW_TQ_MAP[report_type],
                     msg_serial)
 
 
-def header(originator : str) -> str:
+def header(originator : str,
+           destination : str) -> str:
 
     return textwrap.dedent(
            """\
            R {}
-           FM TE X{}.{}
-           TO CTU X{}
+           FM {}
+           TO {}
            INFO EXCON
 
            """\
-            .format(currentDatetime(),
-                     CTU_ORIGINATOR,
-                     originator,
-                     CTU_ORIGINATOR))
+           .format(currentDatetime(),
+                   originator,
+                   destination))
 
 
 def begin() -> str:
@@ -61,22 +60,26 @@ def end() -> str:
 
 
 def msgid(originator : str,
-          msg_serial_number : str) -> str:
+          msg_serial_number : str,
+          report_type : str) -> str:
+    # TODO: handle other qualifiers in field 7 (e.g. follow-up, final, etc...)
 
-    return "MSGID/OPREP NWM/APP-11(E)/1/{}.{}/{}/SEP/-/-/NATO/UNCLASSIFIED//\n" \
-            .format(CTU_ORIGINATOR,
-                    originator,
-                    msg_serial_number)
+    return "MSGID/OPREP NWM/APP-11(E)/1/{}/{}/SEP/{}/-/NATO/UNCLASSIFIED//\n" \
+            .format(originator,
+                    msg_serial_number,
+                    MSG_ID_MAP[report_type]
+                    )
 
 
 def ref(serial_letter: str,
         information_product: str,
+        originator : str,
         datetime: str) -> str:
 
-    return "REF/{}/TYPE:MSG/{}/CTU{}/{}//\n" \
+    return "REF/{}/TYPE:MSG/{}/{}/{}//\n" \
             .format(serial_letter,
                     information_product,
-                    CTU_ORIGINATOR,
+                    originator,
                     datetime)
 
 
@@ -92,16 +95,23 @@ def mtaskrep(area : str,
              start_utc : str,
              second_utc : str) -> str:
 
-    return "MTASKREP/{}-{}/{}.{}/AREA:{}/{}/{}/{}/{}//\n" \
+    return "MTASKREP/{}-{}/{}/-/{}/{}/{}/{}//\n" \
             .format(area,
                     task,
-                    CTU_ORIGINATOR,
                     originator,
-                    area,
                     NMW_TQ_MAP[ReportType.Start],
                     start_utc,
                     NMW_TQ_SECOND_MAP[report_type],
                     second_utc)
+
+
+def mcmpedat_short(area : str,
+                   task : str,
+                   progress : int) -> str:
+
+    return "MCMPEDAT/{}-{}/{}//\n" \
+           .format(area, task, progress)
+
 
 
 def mcmpedat(area : str,
@@ -198,15 +208,35 @@ def nonmilcorep(contact_reference_number: str,
                 fix: str,
                 circular_error_probability: str,
                 sonar_type: str,
-                sonar_confidence_level) -> str:
+                sonar_confidence_level,
+                comment: str,
+                image_name: str) -> str:
 
-    return "NONMILCOREP/{}/{}/WGE/{}/{}/{}/{}//\n" \
+    return "NONMILCOREP/{}/{}/WGE/{}/{}/{}/{}/-/{}/{}//\n" \
            .format(contact_reference_number,
                    utc,
                    fix,
                    circular_error_probability,
                    sonar_type,
-                   sonar_confidence_level)
+                   sonar_confidence_level,
+                   comment,
+                   image_name)
+
+
+def nomboinfo(contact_reference_number: str,
+              utc: str,
+              fix: str,
+              circular_error_probability: str,
+              identification_method: str,
+              image_name: str) -> str:
+
+    return "NONMILCOREP/{}/{}/WGE/{}/{}/-/{}/{}//\n" \
+           .format(contact_reference_number,
+                   utc,
+                   fix,
+                   circular_error_probability,
+                   identification_method,
+                   image_name)
 
 
 def mdetrep(detection_means: str,
@@ -227,6 +257,12 @@ def mdetrep(detection_means: str,
                    mine_reference_number)
 
 
+def mineinfo() -> str:
+
+    return "MINEINFO/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-//\n" \
+           .format()
+
+
 def narr(time_in_water: float,
          pma_detection_and_processing_time: float,
          pma_classification_and_processing_time: float,
@@ -237,4 +273,13 @@ def narr(time_in_water: float,
                    pma_detection_and_processing_time,
                    pma_classification_and_processing_time,
                    pma_recovery_and_processing_time)
+
+
+def gentext(free_text : str) -> str:
+
+    if free_text == "":
+        free_text = "-"
+
+    return "GENTEXT/COMMENTS/{}//\n" \
+           .format(free_text)
 

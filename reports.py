@@ -4,10 +4,12 @@
 import app11
 from constants import ESTATE_THROTTLE_DELTA_T, \
                       NMW_TQ_MAP, \
-                      MILEC, \
-                      MILCO, \
-                      NONMILCO, \
-                      MDET
+                      MILECREP, \
+                      MILCOREP, \
+                      NONMILCOREP, \
+                      MDETREP, \
+                      NOMBOINFO, \
+                      MINEINFO
 from datatypes import ReportType
 import utils
 
@@ -35,19 +37,18 @@ def create_mines(data: dict) -> str:
         fix                         = utils.getMineFix(line)
         circular_error_probability  = utils.getMineCircularErrorProbability(line)
         contact_reference_number    = utils.getMineContactReferenceNumber(line)
-        reference_number            = utils.getMineReferenceNumber(line)
         sonar_confidence_level      = utils.getMineSonarConfidenceLevel(line)
         image_name                  = utils.getMineImageName(line)
 
-        detection_type = line[5].lower()
-        if detection_type == MILEC:
+        detection_type = line[6].upper()
+        if detection_type == MILECREP:
             body += app11.milecrep(utc,
                                    fix,
                                    circular_error_probability,
                                    data['sonar type'].upper(),
                                    "UNCERTAIN",
                                    image_name)
-        if detection_type == MILCO:
+        if detection_type == MILCOREP:
             body += app11.milcorep(contact_reference_number,
                                    utc,
                                    fix,
@@ -56,14 +57,16 @@ def create_mines(data: dict) -> str:
                                    sonar_confidence_level,
                                    "LOOKS LIKE A MINE",
                                    image_name)
-        if detection_type == NONMILCO:
+        if detection_type == NONMILCOREP:
             body += app11.nonmilcorep(contact_reference_number,
                                       utc,
                                       fix,
                                       circular_error_probability,
                                       data['sonar type'].upper(),
-                                      sonar_confidence_level)
-        if detection_type == MDET:
+                                      sonar_confidence_level,
+                                      "DOESN'T LOOK LIKE A MINE",
+                                      image_name)
+        if detection_type == MDETREP:
             body += app11.mdetrep("VISUAL",
                                   utc,
                                   "DIVER",
@@ -96,11 +99,14 @@ def create_trckhist(data):
                                utils.extractAndFormatHeading(line))
 
     body += "\n"
-    
+
     return body
 
 
-def create_body(data: dict) -> str:
+def create_body(data : dict,
+                add_full_mcmpedat : bool,
+                add_trckhist : bool,
+                add_narr : bool) -> str:
 
     report_type = data['report type']
     second_utc = ""
@@ -119,32 +125,43 @@ def create_body(data: dict) -> str:
         second_utc = data['complete utc']
 
     body = ""
-    body += "EXER/REPMUS 2023//\n"
-    body += app11.msgid(data['originator'], data['message serial number'])
-    body += app11.ref("A", "OPDIR", "SEP2023")
-    body += app11.ref("B", "OPTASK NWM", data['reference utc'])
+    body += "EXER/REPMUS 2024//\n"
+    body += app11.msgid(data['originator'], data['message serial number'], report_type)
+    body += "REF/A/TYPE:DOC/EXPLAN/COMMANDO NAVAL/09JUL2024//\n"
+    body += "REF/B/TYPE:DOC/SRL PLAN ANNEX E/EXCON MCM/09JUL2024//\n"
+    body += app11.ref("C", "OPDIR", data['originator'], data['reference utc'])
     body += "GEODATUM/WGE//\n"
     body += app11.nmwrepq(NMW_TQ_MAP[report_type])
     body += "HEADING/MCM//\n"
-    body += app11.mtaskrep(data['area'], data['task'], data['originator'], report_type, data['start utc'], second_utc)
-    body += "\n"
+    body += app11.mtaskrep(data['area'],
+                           data['task'],
+                           data['originator'],
+                           report_type,
+                           data['start utc'],
+                           second_utc)
 
     if report_type == ReportType.Complete:
-        body += app11.mcmpedat(data['area'],
-                               data['task'],
-                               int(data['mission sonar range']),
-                               float(data['classification probability']),
-                               float(data['probability undetected burial']),
-                               float(data['probability undetected seabed']),
-                               int(data['mission number of rows']),
-                               float(data['mission grid step']))
-        body += create_trckhist(data)
-        body += create_mines(data) 
-        body += app11.narr(data['vehicle time in water'],
-                           data['pma detection and processing'],
-                           data['pma classification and processing'],
-                           data['pma recovery and processing'])
+        if add_full_mcmpedat:
+            body += app11.mcmpedat(data['area'],
+                                   data['task'],
+                                   int(data['mission sonar range']),
+                                   float(data['classification probability']),
+                                   float(data['probability undetected burial']),
+                                   float(data['probability undetected seabed']),
+                                   int(data['mission number of rows']),
+                                   float(data['mission grid step']))
+        if add_trckhist:
+            body += create_trckhist(data)
+        body += create_mines(data)
+        if add_narr:
+            body += app11.narr(data['vehicle time in water'],
+                               data['pma detection and processing'],
+                               data['pma classification and processing'],
+                               data['pma recovery and processing'])
+    else:
+        body += app11.mcmpedat_short(data['area'], data['task'], data['progress'])
 
+    body += app11.gentext(data['comments'])
     body += "\n"
 
     return body
@@ -159,12 +176,15 @@ def create_file(filename: str,
 
 
 def create_report(data: dict,
-                  directory: str) -> tuple[str, str]:
+                  directory: str,
+                  add_full_mcmpedat : bool,
+                  add_trckhist : bool,
+                  add_narr : bool) -> tuple [str, str]:
 
     content = ""
-    content += app11.header(data['originator'])
+    content += app11.header(data['originator'], data['destination'])
     content += app11.begin()
-    content += create_body(data)
+    content += create_body(data, add_full_mcmpedat, add_trckhist, add_narr)
     content += app11.end()
 
     filename = create_filename(data)

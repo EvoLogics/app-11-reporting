@@ -3,6 +3,8 @@
 # Library imports
 import datetime
 import math
+from pathlib import Path
+import time
 
 
 def degreesToDDM(deg):
@@ -95,8 +97,9 @@ def getMineContactReferenceNumber(line):
 
 
 def getMineDTG(line):
-    time = datetime.datetime.strptime(line[2], '%Y%m%d%H%M')
-    return time.strftime('%d%H%MZ%b%Y').upper()
+    epoch_time = int(line[1])/1000
+    utc_time = datetime.datetime.utcfromtimestamp(epoch_time)
+    return utc_time.strftime('%d%H%MZ%b%Y').upper()
 
 
 def getMineFix(line):
@@ -105,15 +108,16 @@ def getMineFix(line):
 
 
 def getMineCircularErrorProbability(line):
-    return "{}".format(int((1.0 - round(float(line[6]), 2)) * 100))
+    return "{}".format(int(line[8]))
 
 
 def getMineSonarConfidenceLevel(line):
-    return "{}".format(int(math.floor((float(line[6]) * 100) / 25.0)) + 1)
+    return "{}".format(int(math.floor((float(line[10]) * 100) / 25.0)) + 1)
 
 
 def getMineImageName(line):
-    return "Contact_{}.png".format(line[0]).upper()
+    path = Path(line[11])
+    return "{}".format(path.name).upper()
 
 
 def getMineReferenceNumber(line):

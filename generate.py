@@ -20,10 +20,12 @@ def parse_parameters(filename: str,
 
     config = configparser.ConfigParser()
     config.read(filename)
+    print("Reading parameters from: {}".format(filename))
 
     data = {}
 
-    data['originator']                             = config['GENERAL']['Originator ID']
+    data['originator']                             = config['GENERAL']['Originator']
+    data['destination']                            = config['GENERAL']['Destination']
     data['area']                                   = config['GENERAL']['Area']
     data['task']                                   = config['GENERAL']['Task Order Number']
     data['vehicle name']                           = config['GENERAL']['Vehicle Name']
@@ -35,27 +37,37 @@ def parse_parameters(filename: str,
     if report_type == ReportType.Start:
         data['message serial number']              = config['START']['Message Serial Number']
         data['etc utc']                            = config['START']['UTC Datetime - Estimated Completion']
+        data['progress']                           = config['START']['Progress']
+        data['comments']                           = config['START']['Comments']
 
     if report_type == ReportType.Interrupt:
         data['message serial number']              = config['INTERRUPT']['Message Serial Number']
         data['interrupt utc']                      = config['INTERRUPT']['UTC Datetime - Interrupt']
+        data['progress']                           = config['INTERRUPT']['Progress']
+        data['comments']                           = config['INTERRUPT']['Comments']
 
     if report_type == ReportType.Resume:
         data['message serial number']              = config['RESUME']['Message Serial Number']
         data['resume utc']                         = config['RESUME']['UTC Datetime - Resume']
+        data['progress']                           = config['RESUME']['Progress']
+        data['comments']                           = config['RESUME']['Comments']
 
     if report_type == ReportType.Cancel:
         data['message serial number']              = config['CANCEL']['Message Serial Number']
         data['cancel utc']                         = config['CANCEL']['UTC Datetime - Cancel']
-    
+        data['progress']                           = config['CANCEL']['Progress']
+        data['comments']                           = config['CANCEL']['Comments']
+
     if report_type == ReportType.Stop:
         data['message serial number']              = config['STOP']['Message Serial Number']
         data['stop utc']                           = config['STOP']['UTC Datetime - Stop']
+        data['progress']                           = config['STOP']['Progress']
+        data['comments']                           = config['STOP']['Comments']
 
     if report_type == ReportType.Complete:
         data['message serial number']              = config['COMPLETE']['Message Serial Number']
         data['complete utc']                       = config['COMPLETE']['UTC Datetime - Complete']
-        data['mission grid step']                  = config['COMPLETE']['Mission Grid Step'] 
+        data['mission grid step']                  = config['COMPLETE']['Mission Grid Step']
         data['mission number of rows']             = config['COMPLETE']['Mission Number Of Rows']
         data['mission sonar range']                = config['COMPLETE']['Mission Sonar Range']
         data['classification probability']         = config['COMPLETE']['Probability Of Classifying Hit As Mine']
@@ -65,6 +77,7 @@ def parse_parameters(filename: str,
         data['pma detection and processing']       = config['COMPLETE']['PMA Detection & Processing']
         data['pma classification and processing']  = config['COMPLETE']['PMA Classification & Processing']
         data['pma recovery and processing']        = config['COMPLETE']['PMA Recovery & Processing']
+        data['comments']                           = config['COMPLETE']['Comments']
 
     data['message serial number'] = data['message serial number'].zfill(3)
     data['report type']           = report_type
@@ -93,15 +106,7 @@ def main():
     parser = argparse.ArgumentParser(
     description=textwrap.dedent(
     '''
-    Generate APP-11 reports for REPMUS 2023.
-
-    Note: Proceed with caution!
-    ---------------------------
-    This script was created during REPMUS 2023 with only a partial understanding of the APP-11 standard.
-    It was mostly written when I was very tired and/or very stressed and/or very hungry.
-    It is written specifically for use with EvoLogics GmbH data.
-    It is definitely not guaranteed to be correct and should be used with caution.
-    It is not polished at all, and (very likely) contains many bad coding practices and bugs.
+    Generate APP-11 reports for REPMUS 2024.
     '''
     ),
     formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -117,6 +122,15 @@ def main():
                         type=str,
                         required=True,
                         help='directory which contains all the data files and in which to generate the reports')
+    parser.add_argument('--add-extended-mcmpedat',
+                        action='store_true',
+                        help='add extended MCMPEDAT to the report')
+    parser.add_argument('--add-track-history',
+                        action='store_true',
+                        help='add track history to the report')
+    parser.add_argument('--add-narr',
+                        action='store_true',
+                        help='add NARR to the report')
 
     args = parser.parse_args()
 
@@ -133,17 +147,21 @@ def main():
         print("Aborting")
         sys.exit(0)
 
-    print("\nGenerating...")
-
-    # If it is a complete report, we need to parse the estimated state and mine detection data
+    # If it is a complete report, we need to (maybe) parse the estimated state and mine detection data
+    print("")
     if args.report_type == ReportType.Complete:
-        print("  --> Parsing estimated state data...")
-        data['estimated state data']  = parseCsv(args.directory + constants.ESTIMATED_STATE_FILE_NAME)
-        print("  --> Parsing mine detection data...")
-        data['mine data']             = parseCsv(args.directory + constants.MINE_DETECTION_FILE_NAME)
+        if args.add_extended_mcmpedat:
+            print("Parsing estimated state data...")
+            data['estimated state data']= parseCsv(args.directory + constants.ESTIMATED_STATE_FILE_NAME)
+        print("Parsing mine detection data...")
+        data['mine data'] = parseCsv(args.directory + constants.MINE_DETECTION_FILE_NAME)
 
-    print("  --> Compiling APP-11 report...")
-    filepath, filename = create_report(data, args.directory)
+    print("Compiling APP-11 report...")
+    filepath, filename = create_report(data,
+                                       args.directory,
+                                       args.add_extended_mcmpedat,
+                                       args.add_track_history,
+                                       args.add_narr)
 
     print("\nReport generated at: {}".format(filepath))
     print("\nEmail title: {}".format(filename))
