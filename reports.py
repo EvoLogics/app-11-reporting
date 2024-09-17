@@ -40,7 +40,7 @@ def create_mines(data: dict) -> str:
         sonar_confidence_level      = utils.getMineSonarConfidenceLevel(line)
         image_name                  = utils.getMineImageName(line)
 
-        detection_type = line[6].upper()
+        detection_type = line[0].upper()
         if detection_type == MILECREP:
             body += app11.milecrep(utc,
                                    fix,
@@ -69,11 +69,36 @@ def create_mines(data: dict) -> str:
         if detection_type == MDETREP:
             body += app11.mdetrep("VISUAL",
                                   utc,
+                                  "-",
                                   "DIVER",
                                   fix,
                                   circular_error_probability,
-                                  image_name,
-                                  contact_reference_number)
+                                  "SEE IMAGE " + image_name)
+        if detection_type == NOMBOINFO:
+            nombo_id = utils.getMineNOMBOIdentification(line)
+            body += app11.nomboinfo(contact_reference_number,
+                                   utc,
+                                   fix,
+                                   circular_error_probability,
+                                   nombo_id,
+                                   "SONAR",
+                                   image_name)
+        if detection_type == MINEINFO:
+            mine_reference_number = utils.getMineReferenceNumber(line)
+            mine_status_identifier = utils.getMineStatusIdentifier(line)
+            mine_case = utils.getMineCase(line)
+            mine_identity = utils.getMineIdentity(line)
+            mine_depth = utils.getMineDepth(line)
+            body += app11.mineinfo(mine_reference_number,
+                                  utc,
+                                  fix,
+                                  circular_error_probability,
+                                  mine_status_identifier,
+                                  mine_case,
+                                  mine_identity,
+                                  "SONAR",
+                                  mine_depth,
+                                  image_name)
 
     body += "\n"
 
@@ -161,7 +186,7 @@ def create_body(data : dict,
     else:
         body += app11.mcmpedat_short(data['area'], data['task'], data['progress'])
 
-    body += app11.gentext(data['comments'])
+    body += app11.gentext(data['comments'].upper())
     body += "\n"
 
     return body

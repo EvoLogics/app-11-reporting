@@ -174,6 +174,14 @@ def milecrep(utc: str,
              comment: str,
              image_name: str) -> str:
 
+    if image_name == "":
+        return "MILECREP/{}/WGE/{}/{}/{}/{}//\n" \
+               .format(utc,
+                       fix,
+                       circular_error_probability,
+                       sonar_type,
+                       comment)
+
     return "MILECREP/{}/WGE/{}/{}/{}/{}/{}//\n" \
            .format(utc,
                    fix,
@@ -191,6 +199,16 @@ def milcorep(contact_reference_number: str,
              sonar_confidence_level: str,
              comment: str,
              image_name: str) -> str:
+
+    if image_name == "":
+        return "MILCOREP/{}/{}/WGE/{}/{}/{}/{}/-/{}//\n" \
+               .format(contact_reference_number,
+                       utc,
+                       fix,
+                       circular_error_probability,
+                       sonar_type,
+                       sonar_confidence_level,
+                       comment)
 
     return "MILCOREP/{}/{}/WGE/{}/{}/{}/{}/-/{}/{}//\n" \
            .format(contact_reference_number,
@@ -212,6 +230,16 @@ def nonmilcorep(contact_reference_number: str,
                 comment: str,
                 image_name: str) -> str:
 
+    if image_name == "":
+        return "NONMILCOREP/{}/{}/WGE/{}/{}/{}/{}/-/{}//\n" \
+               .format(contact_reference_number,
+                       utc,
+                       fix,
+                       circular_error_probability,
+                       sonar_type,
+                       sonar_confidence_level,
+                       comment)
+
     return "NONMILCOREP/{}/{}/WGE/{}/{}/{}/{}/-/{}/{}//\n" \
            .format(contact_reference_number,
                    utc,
@@ -223,44 +251,87 @@ def nonmilcorep(contact_reference_number: str,
                    image_name)
 
 
-def nomboinfo(contact_reference_number: str,
-              utc: str,
-              fix: str,
-              circular_error_probability: str,
-              identification_method: str,
-              image_name: str) -> str:
+def mdetrep(detection_means: str,
+            utc: str,
+            unit_type: str,
+            unit_name: str,
+            fix: str,
+            circular_error_probability: str,
+            amplifying_info: str) -> str:
 
-    return "NONMILCOREP/{}/{}/WGE/{}/{}/-/{}/{}//\n" \
+    return "MDETREP/SIGHTED/{}/{}/{}/{}/WGE/{}/{}/-/{}//\n" \
+           .format(detection_means,
+                   utc,
+                   unit_type,
+                   unit_name,
+                   fix,
+                   circular_error_probability,
+                   amplifying_info)
+
+
+def mineinfo(mine_reference_number : str,
+             utc : str,
+             fix : str,
+             circular_error_probability : str,
+             mine_status_identifier : str,
+             mine_case : str,
+             mine_identity : str,
+             identification_method : str,
+             mine_depth : str,
+             image_name : str
+             ) -> str:
+
+    if image_name == "":
+        return "MINEINFO/{}/{}/WGE/{}/{}/{}/{}/-/-/-/{}/{}/{}/-/-/-/-//\n" \
+               .format(mine_reference_number,
+                       utc,
+                       fix,
+                       circular_error_probability,
+                       mine_status_identifier,
+                       mine_case,
+                       mine_identity,
+                       identification_method,
+                       mine_depth)
+
+    return "MINEINFO/{}/{}/WGE/{}/{}/{}/{}/-/-/-/{}/{}/{}/-/-/-/-/{}//\n" \
+           .format(mine_reference_number,
+                   utc,
+                   fix,
+                   circular_error_probability,
+                   mine_status_identifier,
+                   mine_case,
+                   mine_identity,
+                   identification_method,
+                   mine_depth,
+                   image_name)
+
+
+def nomboinfo(contact_reference_number : str,
+              utc : str,
+              fix : str,
+              circular_error_probability : str,
+              nombo_identification : str,
+              identification_method : str,
+              image_name : str
+              ) -> str:
+
+    if image_name == "":
+        return "NOMBOINFO/{}/{}/WGE/{}/{}/{}/{}//\n" \
+               .format(contact_reference_number,
+                       utc,
+                       fix,
+                       circular_error_probability,
+                       nombo_identification,
+                       identification_method)
+
+    return "NOMBOINFO/{}/{}/WGE/{}/{}/{}/{}/{}//\n" \
            .format(contact_reference_number,
                    utc,
                    fix,
                    circular_error_probability,
+                   nombo_identification,
                    identification_method,
                    image_name)
-
-
-def mdetrep(detection_means: str,
-            utc: str,
-            unit_name: str,
-            fix: str,
-            circular_error_probability: str,
-            image_name: str,
-            mine_reference_number: str) -> str:
-
-    return "MDETREP/SIGHTED/{}/{}/-/{}/WGE/{}/{}/-/SEE IMAGE {}/{}//\n" \
-           .format(detection_means,
-                   utc,
-                   unit_name,
-                   fix,
-                   circular_error_probability,
-                   image_name,
-                   mine_reference_number)
-
-
-def mineinfo() -> str:
-
-    return "MINEINFO/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-//\n" \
-           .format()
 
 
 def narr(time_in_water: float,

@@ -31,6 +31,70 @@ MSG_ID_PERMANENT     = "PER"
 MSG_ID_REQUEST       = "REQ"
 MSG_ID_UPDATE        = "UPD"
 
+# MINE STATUS IDENTIFIER (see table 1609/1)
+MSI_MINE_LEFT_IN_PLACE   = "LIPLA"
+MSI_DRIFTING_MINE        = "DRIFT"
+MSI_FLOATING_MINE        = "FLOAT"
+MSI_FOULED_MINE          = "FOULED"
+MSI_NOT_DEALT_WITH_MINE  = "NDEALT"
+MSI_SUNK_MINE            = "SUNK"
+MSI_SWEPT_MINE           = "SWEPT"
+MSI_DISPOSED_MINE        = "DISP"
+MSI_COUNTERMINED_MINE    = "CMINED"
+MSI_NEUTRALIZED_MINE     = "NEUTR"
+MSI_MARKED_MINE          = "MARK"
+MSI_REMOVED_MINE         = "RMVD"
+MSI_RECOVERED_MINE       = "RECVD"
+MSI_RENDERED_SAFE_MINE   = "RSAFE"
+MSI_EXPLODED_MINE        = "EXPLD"
+MSI_ACTIVATED_MINE       = "ACTIV"
+
+# MINE CASE (see table 1141/1)
+MC_NO_INFORMATION_ON_THE_MINE_BODY  = "0"
+MC_MOORED_MINE                      = "1"
+MC_SHALLOW_MOORED_MINE              = "2"
+MC_DEEP_MOORED_MINE                 = "3"
+MC_GROUND_MINE                      = "4"
+MC_STEALTH_MINE                     = "5"
+MC_SELF_PROPELLED_MINE              = "6"
+MC_RISING_MINE                      = "7"
+MC_UNEXPLODED_EXPLOSIVE_ORDNANCE    = "8"
+MC_OBSTRUCTORS                      = "9"
+
+# Mine status ID map
+MINE_STATUS_ID_MAP = {
+                      "LEFT-IN-PLACE"   : "LIPLA",
+                      "DRIFTING"        : "DRIFT",
+                      "FLOATING"        : "FLOAT",
+                      "FOULED"          : "FOULED",
+                      "NOT-DEALT-WITH"  : "NDEALT",
+                      "SUNK"            : "SUNK",
+                      "SWEPT"           : "SWEPT",
+                      "DISPOSED"        : "DISP",
+                      "COUNTERMINED"    : "CMINED",
+                      "NEUTRALIZED"     : "NEUTR",
+                      "MARKED"          : "MARK",
+                      "REMOVED"         : "RMVD",
+                      "RECOVERED"       : "RECVD",
+                      "RENDERED-SAFE"   : "RSAFE",
+                      "EXPLODED"        : "EXPLD",
+                      "ACTIVATED"       : "ACTIV"
+                     }
+
+# Mine case map
+MINE_CASE_MAP = {
+                 "NO-INFO"              : "0",
+                 "MOORED-MINE"          : "1",
+                 "SHALLOW-MOORED-MINE"  : "2",
+                 "DEEP-MOORED-MINE"     : "3",
+                 "GROUND-MINE"          : "4",
+                 "STEALTH-MINE"         : "5",
+                 "SELF-PROPELLED-MINE"  : "6",
+                 "RISING-MINE"          : "7",
+                 "UNEXPLODED-EXPLOSIVE-ORDNANCE" : "8",
+                 "OBSTRUCTORS"          : "9"
+                }
+
 # Map of report type to NMW time qualifier
 NMW_TQ_MAP = {
               ReportType.Start     : NMW_TQ_START,

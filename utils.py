@@ -6,6 +6,9 @@ import math
 from pathlib import Path
 import time
 
+# Local imports
+from constants import MINE_STATUS_ID_MAP, MINE_CASE_MAP
+
 
 def degreesToDDM(deg):
     if (deg >= 0.0):
@@ -93,32 +96,51 @@ def createTrckHist(data, equipment):
 
 
 def getMineContactReferenceNumber(line):
-    return "{}".format(line[0]).upper()
-
-
-def getMineDTG(line):
-    epoch_time = int(line[1])/1000
-    utc_time = datetime.datetime.utcfromtimestamp(epoch_time)
-    return utc_time.strftime('%d%H%MZ%b%Y').upper()
-
-
-def getMineFix(line):
-    return formatFix(degreesToDDM(float(line[3])),
-                     degreesToDDM(float(line[4])))
-
-
-def getMineCircularErrorProbability(line):
-    return "{}".format(int(line[8]))
-
-
-def getMineSonarConfidenceLevel(line):
-    return "{}".format(int(math.floor((float(line[10]) * 100) / 25.0)) + 1)
-
-
-def getMineImageName(line):
-    path = Path(line[11])
-    return "{}".format(path.name).upper()
+    return "{}".format(line[1]).upper()
 
 
 def getMineReferenceNumber(line):
-    return "{}".format(line[7]).upper()
+    return "{}".format(line[2]).upper()
+
+
+def getMineNOMBOIdentification(line):
+    return "{}".format(line[3]).upper()
+
+
+def getMineDTG(line):
+    date = datetime.datetime.strptime(line[4], '%Y%m%d-%H%M')
+    return date.strftime('%d%H%MZ%b%Y').upper()
+
+
+def getMineFix(line):
+    return formatFix(degreesToDDM(float(line[6])),
+                     degreesToDDM(float(line[5])))
+
+
+def getMineCircularErrorProbability(line):
+    return "{}".format(int(line[7]))
+
+
+def getMineSonarConfidenceLevel(line):
+    return "{}".format(int(math.floor((float(line[8]) * 100) / 25.0)) + 1)
+
+
+def getMineStatusIdentifier(line):
+    return MINE_STATUS_ID_MAP[line[9]]
+
+
+def getMineCase(line):
+    return MINE_CASE_MAP[line[10]]
+
+
+def getMineIdentity(line):
+    return "{}".format(line[11]).upper()
+
+
+def getMineDepth(line):
+    return "{}".format(int(line[12]))
+
+
+def getMineImageName(line):
+    path = Path(line[13])
+    return "{}".format(path.name).upper()
