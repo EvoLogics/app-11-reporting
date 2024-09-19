@@ -126,21 +126,21 @@ def getMineSonarConfidenceLevel(line):
 
 
 def getMineStatusIdentifier(line):
-    return MINE_STATUS_ID_MAP[line[9]]
+    return MINE_STATUS_ID_MAP[line[10]]
 
 
 def getMineCase(line):
-    return MINE_CASE_MAP[line[10]]
+    return MINE_CASE_MAP[line[11]]
 
 
 def getMineIdentity(line):
-    return "{}".format(line[11]).upper()
+    return "{}".format(line[12]).upper()
 
 
 def getMineDepth(line):
-    return "{}".format(int(line[12]))
+    return "{}".format(int(line[13]))
 
 
 def getMineImageName(line):
-    path = Path(line[13])
+    path = Path(line[14])
     return "{}".format(path.name).upper()
