@@ -5,11 +5,11 @@ import math
 import textwrap
 
 # Local imports
-from constants import NMW_TQ_MAP, \
-                      NMW_TQ_SECOND_MAP, \
-                      MSG_ID_MAP
-from datatypes import ReportType
-from utils import currentDatetime
+from src.constants import NMW_TQ_MAP, \
+                          NMW_TQ_SECOND_MAP, \
+                          MSG_ID_MAP
+from src.datatypes import ReportType
+from src.utils import currentDatetime
 
 
 def filename(report_type : ReportType,
@@ -18,7 +18,7 @@ def filename(report_type : ReportType,
              task : str,
              msg_serial : str) -> str:
 
-    return "{}_{}-{}_{}_{}" \
+    return "{}_{}-{}_{}_{}.txt" \
             .format(originator,
                     area,
                     task,

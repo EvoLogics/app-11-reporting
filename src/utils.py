@@ -7,7 +7,12 @@ from pathlib import Path
 import time
 
 # Local imports
-from constants import MINE_STATUS_ID_MAP, MINE_CASE_MAP
+from src.constants import MINE_STATUS_ID_MAP, MINE_CASE_MAP
+
+
+def timeToZulu(time_str):
+    date = datetime.datetime.strptime(time_str, '%Y%m%d-%H%M')
+    return date.strftime('%d%H%MZ%b%Y').upper()
 
 
 def degreesToDDM(deg):
@@ -108,8 +113,7 @@ def getMineNOMBOIdentification(line):
 
 
 def getMineDTG(line):
-    date = datetime.datetime.strptime(line[4], '%Y%m%d-%H%M')
-    return date.strftime('%d%H%MZ%b%Y').upper()
+    return timeToZulu(line[4])
 
 
 def getMineFix(line):
@@ -123,6 +127,10 @@ def getMineCircularErrorProbability(line):
 
 def getMineSonarConfidenceLevel(line):
     return "{}".format(int(math.floor((float(line[8]) * 100) / 25.0)) + 1)
+
+
+def getMineDetectionEquipment(line):
+    return line[9]
 
 
 def getMineStatusIdentifier(line):

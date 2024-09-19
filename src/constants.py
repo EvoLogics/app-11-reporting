@@ -1,13 +1,18 @@
-# Constants used in REPMUS 2023 APP-11 report generation.
-
 # Local imports
-from datatypes import ReportType
+from src.datatypes import ReportType
 
+# Constants for folder names
+FOLDER_NAME_DATA      = "data"
+FOLDER_NAME_IMAGES    = "images"
+FOLDER_NAME_REPORTS   = "reports"
+FOLDER_NAME_TASKING   = "tasking"
 
-# Filenames
-PARAMETERS_FILE_NAME       = "parameters.ini"
-ESTIMATED_STATE_FILE_NAME  = "EstimatedState.csv"
-MINE_DETECTION_FILE_NAME   = "Mines.csv"
+# Constants for filenames
+FILENAME_PARAMETERS          = "parameters.ini"
+FILENAME_MINES_CSV           = "Mines.csv"
+FILENAME_ESTIMATED_STATE_CSV = "EstimatedState.csv"
+FILENAME_TASKING_TXT         = "tasking.txt"
+FILENAME_NUMBER_CACHE_FILE   = "number_cache"
 
 # NMW time qualifiers (see table 1220/22)
 NMW_TQ_CANCEL        = "CXL"
@@ -83,24 +88,28 @@ MINE_STATUS_ID_MAP = {
 
 # Mine case map
 MINE_CASE_MAP = {
-                 "NO-INFO"              : "0",
-                 "MOORED-MINE"          : "1",
-                 "SHALLOW-MOORED-MINE"  : "2",
-                 "DEEP-MOORED-MINE"     : "3",
-                 "GROUND-MINE"          : "4",
-                 "STEALTH-MINE"         : "5",
-                 "SELF-PROPELLED-MINE"  : "6",
-                 "RISING-MINE"          : "7",
+                 "NO-INFO"                       : "0",
+                 "MOORED-MINE"                   : "1",
+                 "SHALLOW-MOORED-MINE"           : "2",
+                 "DEEP-MOORED-MINE"              : "3",
+                 "GROUND-MINE"                   : "4",
+                 "STEALTH-MINE"                  : "5",
+                 "SELF-PROPELLED-MINE"           : "6",
+                 "RISING-MINE"                   : "7",
                  "UNEXPLODED-EXPLOSIVE-ORDNANCE" : "8",
-                 "OBSTRUCTORS"          : "9"
+                 "OBSTRUCTORS"                   : "9"
                 }
+
+# Map of parameter section names to report types
+PARAMETER_SECTION_MAP = {
+                         "START"     : ReportType.Start,
+                         "STOP"      : ReportType.Stop,
+                         "COMPLETE"  : ReportType.Complete
+                        }
 
 # Map of report type to NMW time qualifier
 NMW_TQ_MAP = {
               ReportType.Start     : NMW_TQ_START,
-              ReportType.Interrupt : NMW_TQ_INTERRUPT,
-              ReportType.Resume    : NMW_TQ_RESUME,
-              ReportType.Cancel    : NMW_TQ_CANCEL,
               ReportType.Stop      : NMW_TQ_STOP,
               ReportType.Complete  : NMW_TQ_COMPLETE
              }
@@ -108,9 +117,6 @@ NMW_TQ_MAP = {
 # Map of report type to NMW time qualifier
 NMW_TQ_SECOND_MAP = {
                      ReportType.Start     : NMW_TQ_ETC,
-                     ReportType.Interrupt : NMW_TQ_INTERRUPT,
-                     ReportType.Resume    : NMW_TQ_RESUME,
-                     ReportType.Cancel    : NMW_TQ_CANCEL,
                      ReportType.Stop      : NMW_TQ_STOP,
                      ReportType.Complete  : NMW_TQ_COMPLETE
                     }
@@ -118,12 +124,16 @@ NMW_TQ_SECOND_MAP = {
 # Map of report type to MSG ID QUALIFIER
 MSG_ID_MAP = {
               ReportType.Start     : MSG_ID_INITIAL,
-              ReportType.Interrupt : MSG_ID_UPDATE,
-              ReportType.Resume    : MSG_ID_UPDATE,
-              ReportType.Cancel    : MSG_ID_UPDATE,
               ReportType.Stop      : MSG_ID_UPDATE,
               ReportType.Complete  : MSG_ID_FINAL
              }
+
+# Map of vehicle to detection equipment type
+DETECTION_EQUIPMENT_MAP = {
+                           "SONOBOT"   : "HYDRA H5SE7",
+                           "QUADROIN"  : "MARINESONIC ARC SEA SCOUT MK-II",
+                           "DIVER"     : "DIVER"
+                          }
 
 # Estimated State Throttle Delta T
 ESTATE_THROTTLE_DELTA_T = 15.0
