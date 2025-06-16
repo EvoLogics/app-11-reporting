@@ -1,8 +1,11 @@
 astroid==3.2.4
+colorama==0.4.6
 configparser==7.0.0
 dill==0.3.8
 isort==5.13.2
+jedi==0.19.1
 mccabe==0.7.0
+parso==0.8.4
 pathlib==1.0.1
 platformdirs==4.3.2
 pylint==3.2.7

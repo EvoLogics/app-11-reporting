@@ -1,3 +1,7 @@
+src/__pycache__/*
 __pycache__/*
 old/*
 virtual-env/*
+data/*
+reports/*
+number_cache
